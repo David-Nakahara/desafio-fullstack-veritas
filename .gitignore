@@ -1,0 +1,14 @@
+# Go
+backend/*.exe
+backend/*.test
+backend/*.out
+
+# Node (frontend, quando chegarmos lá)
+frontend/node_modules/
+frontend/dist/
+frontend/.env
+
+# Editor
+.vscode/
+.idea/
+*.log
