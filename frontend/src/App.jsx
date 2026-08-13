@@ -1,122 +1,130 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from './assets/vite.svg'
-import heroImg from './assets/hero.png'
-import './App.css'
+import { useEffect, useState } from "react";
+import { createTask, deleteTask, fetchTasks, updateTask } from "./api/tasks";
+import Board from "./components/Board";
+import TaskForm from "./components/TaskForm";
+import "./css/App.css";
 
-function App() {
-  const [count, setCount] = useState(0)
+export default function App() {
+  const [tasks, setTasks] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+  const [isFormOpen, setIsFormOpen] = useState(false);
+  const [taskToEdit, setTaskToEdit] = useState(null);
+  const [saving, setSaving] = useState(false);
+
+  useEffect(() => {
+    loadTasks();
+  }, []);
+
+  async function loadTasks() {
+    setLoading(true);
+    setError("");
+    try {
+      const data = await fetchTasks();
+      setTasks(data);
+    } catch (err) {
+      setError("Não foi possível carregar as tarefas. O backend está rodando?");
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  function openCreateForm() {
+    setTaskToEdit(null);
+    setIsFormOpen(true);
+  }
+
+  function openEditForm(task) {
+    setTaskToEdit(task);
+    setIsFormOpen(true);
+  }
+
+  function closeForm() {
+    setIsFormOpen(false);
+    setTaskToEdit(null);
+  }
+
+  async function handleSave(formData) {
+    setSaving(true);
+    setError("");
+    try {
+      if (taskToEdit) {
+        const updated = await updateTask(taskToEdit.id, formData);
+        setTasks((prev) => prev.map((t) => (t.id === updated.id ? updated : t)));
+      } else {
+        const created = await createTask(formData);
+        setTasks((prev) => [...prev, created]);
+      }
+      closeForm();
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  async function handleDelete(task) {
+    if (!confirm(`Excluir a tarefa "${task.title}"?`)) return;
+
+    setError("");
+    try {
+      await deleteTask(task.id);
+      setTasks((prev) => prev.filter((t) => t.id !== task.id));
+    } catch (err) {
+      setError(err.message);
+    }
+  }
+
+
+  async function handleMove(task, newStatus) {
+    const previousTasks = tasks;
+    setTasks((prev) =>
+      prev.map((t) => (t.id === task.id ? { ...t, status: newStatus } : t))
+    );
+
+    try {
+      await updateTask(task.id, { ...task, status: newStatus });
+    } catch (err) {
+      setError(err.message);
+      setTasks(previousTasks);
+    }
+  }
 
   return (
-    <>
-      <section id="center">
-        <div className="hero">
-          <img src={heroImg} className="base" width="170" height="179" alt="" />
-          <img src={reactLogo} className="framework" alt="React logo" />
-          <img src={viteLogo} className="vite" alt="Vite logo" />
-        </div>
+    <div className="app">
+      <header className="app__header">
         <div>
-          <h1>Get started</h1>
-          <p>
-            Edit <code>src/App.jsx</code> and save to test <code>HMR</code>
-          </p>
+          <h1>Mini Kanban</h1>
+          <p className="app__subtitle">Organize suas tarefas em três colunas</p>
         </div>
-        <button
-          type="button"
-          className="counter"
-          onClick={() => setCount((count) => count + 1)}
-        >
-          Count is {count}
+        <button className="button button--primary" onClick={openCreateForm}>
+          + Nova tarefa
         </button>
-      </section>
+      </header>
 
-      <div className="ticks"></div>
-
-      <section id="next-steps">
-        <div id="docs">
-          <svg className="icon" role="presentation" aria-hidden="true">
-            <use href="/icons.svg#documentation-icon"></use>
-          </svg>
-          <h2>Documentation</h2>
-          <p>Your questions, answered</p>
-          <ul>
-            <li>
-              <a href="https://vite.dev/" target="_blank">
-                <img className="logo" src={viteLogo} alt="" />
-                Explore Vite
-              </a>
-            </li>
-            <li>
-              <a href="https://react.dev/" target="_blank">
-                <img className="button-icon" src={reactLogo} alt="" />
-                Learn more
-              </a>
-            </li>
-          </ul>
+      {error && (
+        <div className="banner banner--error">
+          {error}
+          <button onClick={() => setError("")} aria-label="Fechar aviso">
+            ✕
+          </button>
         </div>
-        <div id="social">
-          <svg className="icon" role="presentation" aria-hidden="true">
-            <use href="/icons.svg#social-icon"></use>
-          </svg>
-          <h2>Connect with us</h2>
-          <p>Join the Vite community</p>
-          <ul>
-            <li>
-              <a href="https://github.com/vitejs/vite" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#github-icon"></use>
-                </svg>
-                GitHub
-              </a>
-            </li>
-            <li>
-              <a href="https://chat.vite.dev/" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#discord-icon"></use>
-                </svg>
-                Discord
-              </a>
-            </li>
-            <li>
-              <a href="https://x.com/vite_js" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#x-icon"></use>
-                </svg>
-                X.com
-              </a>
-            </li>
-            <li>
-              <a href="https://bsky.app/profile/vite.dev" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#bluesky-icon"></use>
-                </svg>
-                Bluesky
-              </a>
-            </li>
-          </ul>
-        </div>
-      </section>
+      )}
 
-      <div className="ticks"></div>
-      <section id="spacer"></section>
-    </>
-  )
+      {loading ? (
+        <div className="loading-state">Carregando tarefas...</div>
+      ) : (
+        <Board tasks={tasks} onEdit={openEditForm} onDelete={handleDelete} onMove={handleMove} />
+      )}
+
+      {isFormOpen && (
+        <TaskForm
+          taskToEdit={taskToEdit}
+          onSave={handleSave}
+          onCancel={closeForm}
+          saving={saving}
+        />
+      )}
+    </div>
+  );
 }
-
-export default App
