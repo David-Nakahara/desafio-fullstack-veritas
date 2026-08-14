@@ -1,4 +1,4 @@
-﻿# Desafio Full Stack Veritas
+# Desafio Full Stack Veritas
 
 Mini Kanban desenvolvido como desafio técnico, com **React no frontend** e **Go no backend**.
 
@@ -46,7 +46,7 @@ desafio-fullstack-veritas/
 A API possui os seguintes endpoints:
 
 | Método | Rota          | Função              |
-| ------ | ------------- | ------------------- |
+| ------ | ------------- | -------------------- |
 | GET    | `/tasks`      | Lista as tarefas    |
 | POST   | `/tasks`      | Cria uma tarefa     |
 | GET    | `/tasks/{id}` | Busca uma tarefa    |
@@ -64,9 +64,9 @@ Cada tarefa possui:
 }
 ```
 
-O armazenamento é feito em memória, conforme o requisito do desafio. Usei `sync.RWMutex` para proteger o `map` contra acessos concorrentes.
+As tarefas ficam armazenadas em memória usando um `map`. Para evitar problemas quando mais de uma requisição acessa os dados ao mesmo tempo, utilizei `sync.RWMutex`.
 
-Também foi utilizado o roteamento nativo do `ServeMux` do Go 1.22, permitindo definir diretamente o método HTTP junto com a rota.
+Também utilizei o `ServeMux` nativo do Go 1.22, que permite definir o método HTTP diretamente na rota.
 
 ## Frontend
 
@@ -84,17 +84,17 @@ O frontend possui três colunas fixas:
 * Mover tarefas entre as colunas
 * Visualizar estados de loading e erro
 
-A comunicação com a API foi centralizada em `api/tasks.js`, enquanto o estado principal das tarefas fica no `App.jsx`.
+Deixei as chamadas para a API centralizadas em `api/tasks.js` e o estado principal das tarefas fica no `App.jsx`.
 
 ## Decisões técnicas
 
-Optei por manter a estrutura do backend simples, separando **handlers, armazenamento, modelos e middleware**, sem adicionar camadas de Service/Repository que não seriam necessárias para o tamanho desse projeto.
+No backend, procurei manter a estrutura simples, separando **handlers, armazenamento, modelos e middleware**. Como o projeto é pequeno, não achei necessário criar outras camadas como Service e Repository.
 
-No frontend, mantive o estado das tarefas centralizado no `App.jsx` e deixei os componentes responsáveis principalmente pela interface e pelas ações recebidas via props.
+No frontend, mantive o estado das tarefas no `App.jsx`, enquanto os componentes ficam mais focados na interface e nas ações que recebem via props.
 
-O armazenamento em memória foi mantido porque persistência em JSON ou banco de dados era apenas um bônus no desafio.
+Mantive o armazenamento em memória porque era o suficiente para o que foi pedido no desafio. Persistência em JSON ou banco de dados seria uma melhoria futura.
 
-Para a movimentação das tarefas, utilizei uma atualização otimista para que a mudança de coluna aconteça imediatamente na interface e seja revertida caso a API retorne um erro.
+Na movimentação das tarefas, utilizei uma atualização otimista. Assim, a tarefa muda de coluna na interface imediatamente e, caso a API retorne um erro, a alteração é desfeita.
 
 ## Como executar
 
@@ -152,15 +152,29 @@ Concluída
 Editar / Excluir
 ```
 
-## Limitações e possíveis melhorias
+## 🐛 Dificuldades encontradas
 
-Como o foco foi atender os requisitos dentro do prazo do desafio, algumas funcionalidades ficaram de fora ou podem ser evoluídas futuramente:
+* Foi meu primeiro contato de verdade com Go. Eu já tinha visto alguns vídeos e artigos sobre a linguagem, mas nunca tinha desenvolvido um projeto com ela. Então precisei aprender bastante coisa durante o próprio teste.
+* No começo, tive dificuldade para entender por que o armazenamento em memória precisava ser protegido contra acessos simultâneos. Foi aí que entendi melhor na prática como o `sync.RWMutex` funciona.
+* Também precisei entender uma diferença importante do Go: structs são copiadas por valor. Isso apareceu na implementação do `Update` e me ajudou a entender melhor a diferença entre trabalhar com uma cópia e alterar o dado original.
+* No frontend, tive um `ReferenceError: Column is not defined`. Depois de investigar, descobri que um import tinha sido substituído sem querer durante uma reorganização dos arquivos.
+* Tive alguns problemas de configuração no Windows, principalmente com o `PATH` do Go e com o encoding UTF-16 do `echo` no PowerShell, que acabou gerando um conflito no Git.
 
-* Persistência das tarefas em banco ou arquivo JSON
-* Testes automatizados
-* Drag-and-drop
-* Restringir o CORS para uma origem específica em produção
-* Autenticação e autorização, caso o projeto evoluísse para múltiplos usuários
-* Validações mais avançadas
+## 🧠 O que eu aprendi
 
-Atualmente também é possível criar tarefas com títulos iguais, comportamento comum em ferramentas de gerenciamento de tarefas. Uma melhoria futura poderia ser apenas alertar o usuário quando já existir uma tarefa com o mesmo título.
+* Aprendi na prática como estruturar uma API REST em Go, separando os handlers, modelos e armazenamento.
+* Entendi melhor a diferença entre passar algo por valor ou por referência, principalmente depois de encontrar isso durante a implementação.
+* Aprendi por que um mutex é necessário quando existem vários acessos aos mesmos dados ao mesmo tempo.
+* Entendi melhor como CORS e o preflight funcionam quando frontend e backend estão rodando separadamente.
+* Passei a prestar mais atenção nos erros e stack traces antes de sair procurando o problema no lugar errado.
+* E principalmente, aprendi que consigo pegar uma tecnologia que ainda não conheço bem, estudar o necessário e conseguir entregar algo funcional dentro de um prazo curto.
+
+## 🚀 Possíveis melhorias futuras
+
+Se eu continuasse desenvolvendo o projeto, algumas coisas que eu gostaria de adicionar seriam:
+
+* Persistência das tarefas em um banco de dados ou arquivo JSON.
+* Testes automatizados para os principais endpoints e regras da aplicação.
+* Drag-and-drop para facilitar a movimentação das tarefas entre as colunas.
+* Restringir o CORS para permitir apenas a origem do frontend em produção.
+* Adicionar autenticação e autorização caso o sistema passasse a ter vários usuários.
