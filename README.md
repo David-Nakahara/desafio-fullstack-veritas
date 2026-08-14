@@ -157,7 +157,6 @@ Editar / Excluir
 * Foi meu primeiro contato de verdade com Go. Eu já tinha visto alguns vídeos e artigos sobre a linguagem, mas nunca tinha desenvolvido um projeto com ela. Então precisei aprender bastante coisa durante o próprio teste.
 * No começo, tive dificuldade para entender por que o armazenamento em memória precisava ser protegido contra acessos simultâneos. Foi aí que entendi melhor na prática como o `sync.RWMutex` funciona.
 * Também precisei entender uma diferença importante do Go: structs são copiadas por valor. Isso apareceu na implementação do `Update` e me ajudou a entender melhor a diferença entre trabalhar com uma cópia e alterar o dado original.
-* No frontend, tive um `ReferenceError: Column is not defined`. Depois de investigar, descobri que um import tinha sido substituído sem querer durante uma reorganização dos arquivos.
 * Tive alguns problemas de configuração no Windows, principalmente com o `PATH` do Go e com o encoding UTF-16 do `echo` no PowerShell, que acabou gerando um conflito no Git.
 
 ## 🧠 O que eu aprendi
